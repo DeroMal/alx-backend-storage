@@ -1,6 +1,5 @@
--- Select band_name, difference between formed and split columns as lifespan from metal_bands table where main_style is 'Glam rock' and order them by lifespan in descending order
-SELECT band_name, TIMESTAMPDIFF(YEAR, formed, split) AS lifespan
-FROM metal_bands
-WHERE main_style = 'Glam rock'
-ORDER BY lifespan DESC;
-
+-- SQL script that lists all bands with Glam rock
+SELECT DISTINCT `band_name`,
+                IFNULL(`split`, 2020) - `formed` as `lifespan`
+  FROM `metal_bands` WHERE FIND_IN_SET('Glam rock', style)
+  ORDER BY `lifespan` DESC;
