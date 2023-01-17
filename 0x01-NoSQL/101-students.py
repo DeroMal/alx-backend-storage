@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-
 def top_students(mongo_collection):
+    
     """
     Returns all students sorted by average score.
     :param mongo_collection: pymongo collection object
