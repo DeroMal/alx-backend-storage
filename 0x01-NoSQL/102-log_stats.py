@@ -1,33 +1,45 @@
 #!/usr/bin/env python3
-"""102-log_stats.py"""
+""" MongoDB Operations with Python using pymongo """
+from pymongo import MongoClient
 
-def top_students(mongo_collection, nginx_collection):
-    """
-    Returns all students sorted by average score and the top 10 most present IPs in the "nginx" collection of the "logs" database.
-    :param mongo_collection: pymongo collection object for students
-    :param nginx_collection: pymongo collection object for nginx logs
-    :return: List of students documents with average score and a list of the top 10 most present IPs
-    """
-    students_cursor = mongo_collection.aggregate([
-        {
-            "$project":
-                {
-                    "name": "$name",
-                    "averageScore": {"$avg": "$topics.score"}
-                }
-        },
-        {
-            "$sort":
-                {
-                    "averageScore": -1
-                }
-        }
-    ])
-    students_list = list(students_cursor)
-    ip_top_cursor = nginx_collection.aggregate([
-        {"$group": {"_id": "$ip", "count": {"$sum": 1}}},
+if __name__ == "__main__":
+    """ Provides some stats about Nginx logs stored in MongoDB """
+    client = MongoClient('mongodb://127.0.0.1:27017')
+    nginx_collection = client.logs.nginx
+
+    n_logs = nginx_collection.count_documents({})
+    print(f'{n_logs} logs')
+
+    methods = ["GET", "POST", "PUT", "PATCH", "DELETE"]
+    print('Methods:')
+    for method in methods:
+        count = nginx_collection.count_documents({"method": method})
+        print(f'\tmethod {method}: {count}')
+
+    status_check = nginx_collection.count_documents(
+        {"method": "GET", "path": "/status"}
+    )
+
+    print(f'{status_check} status check')
+
+    top_ips = nginx_collection.aggregate([
+        {"$group":
+            {
+                "_id": "$ip",
+                "count": {"$sum": 1}
+            }
+         },
         {"$sort": {"count": -1}},
-        {"$limit": 10}
+        {"$limit": 10},
+        {"$project": {
+            "_id": 0,
+            "ip": "$_id",
+            "count": 1
+        }}
     ])
-    ip_top_list = list(ip_top_cursor)
-    return (students_list, ip_top_list)
+
+    print("IPs:")
+    for top_ip in top_ips:
+        ip = top_ip.get("ip")
+        count = top_ip.get("count")
+        print(f'\t{ip}: {count}')
