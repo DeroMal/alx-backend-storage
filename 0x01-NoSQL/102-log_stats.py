@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+"""102-log_stats.py"""
 from pymongo import MongoClient
 
 def top_students(mongo_collection):
